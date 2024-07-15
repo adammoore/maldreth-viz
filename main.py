@@ -1,9 +1,12 @@
 import dash
-from dash import html, dcc
+from dash import html, dcc, dash_table
 from dash.dependencies import Input, Output, State
 import dash_bootstrap_components as dbc
+import plotly.graph_objects as go
+import pandas as pd
+import math
 
-# Define the data
+# Define the data (same as before)
 data = [
     {"name": "Fund", "color": "#8dd3c7",
      "description": "To identify and acquire financial resources to support the research project, including data collection, management, analysis, sharing, publishing and preservation."},
@@ -31,17 +34,50 @@ data = [
      "description": "To create new data from the original, for example: (i) by migration into a different format; (ii) by creating a subset, by selection or query, to create newly derived results, perhaps for publication; or, iii) combining or appending with other data"}
 ]
 
+# Updated tool_categories with more information
 tool_categories = {
     'Conceptualise': [
-        {'name': 'Mind mapping, concept mapping and knowledge modelling',
-         'examples': ['Miro', 'Meister Labs (MindMeister + MeisterTask)', 'XMind']},
-        {'name': 'Diagramming and flowchart', 'examples': ['Lucidchart', 'Draw.io (now Diagrams.net)', 'Creately']},
-        {'name': 'Wireframing and prototyping', 'examples': ['Balsamiq', 'Figma']}
+        {'name': 'Mind mapping, concept mapping and knowledge modelling', 'examples': [
+            {'name': 'Miro', 'description': 'Online collaborative whiteboard platform', 'website': 'https://miro.com'},
+            {'name': 'Meister Labs', 'description': 'Mind mapping and task management tools',
+             'website': 'https://www.meisterlabs.com'},
+            {'name': 'XMind', 'description': 'Mind mapping and brainstorming tool', 'website': 'https://www.xmind.net'}
+        ]},
+        {'name': 'Diagramming and flowchart', 'examples': [
+            {'name': 'Lucidchart', 'description': 'Web-based diagramming application',
+             'website': 'https://www.lucidchart.com'},
+            {'name': 'Draw.io', 'description': 'Free online diagram software', 'website': 'https://app.diagrams.net'},
+            {'name': 'Creately', 'description': 'Visual collaboration software', 'website': 'https://creately.com'}
+        ]},
+        {'name': 'Wireframing and prototyping', 'examples': [
+            {'name': 'Balsamiq', 'description': 'Rapid wireframing tool', 'website': 'https://balsamiq.com'},
+            {'name': 'Figma', 'description': 'Collaborative interface design tool', 'website': 'https://www.figma.com'}
+        ]}
     ],
     'Plan': [
-        {'name': 'Data management planning (DMP)', 'examples': ['DMP Tool', 'DMP Online', 'RDMO']},
-        {'name': 'Project planning', 'examples': ['Trello', 'Asana', 'Microsoft project']},
-        {'name': 'Combined DMP/project', 'examples': ['Data Stewardship Wizard', 'Redbox research data', 'Argos']}
+        {'name': 'Data management planning (DMP)', 'examples': [
+            {'name': 'DMP Tool', 'description': 'Online tool for creating data management plans',
+             'website': 'https://dmptool.org'},
+            {'name': 'DMP Online', 'description': 'Tool for creating and sharing data management plans',
+             'website': 'https://dmponline.dcc.ac.uk'},
+            {'name': 'RDMO', 'description': 'Research Data Management Organiser',
+             'website': 'https://rdmorganiser.github.io'}
+        ]},
+        {'name': 'Project planning', 'examples': [
+            {'name': 'Trello', 'description': 'Web-based Kanban-style list-making application',
+             'website': 'https://trello.com'},
+            {'name': 'Asana', 'description': 'Web and mobile work management platform', 'website': 'https://asana.com'},
+            {'name': 'Microsoft Project', 'description': 'Project management software',
+             'website': 'https://www.microsoft.com/en-us/microsoft-365/project/project-management-software'}
+        ]},
+        {'name': 'Combined DMP/project', 'examples': [
+            {'name': 'Data Stewardship Wizard',
+             'description': 'Tool for data management planning and project management',
+             'website': 'https://ds-wizard.org'},
+            {'name': 'Redbox', 'description': 'Research data management platform',
+             'website': 'https://www.redboxresearchdata.com.au'},
+            {'name': 'Argos', 'description': 'Data management planning tool', 'website': 'https://argos.openaire.eu'}
+        ]}
     ],
     # ... Add other categories here ...
 }
@@ -49,21 +85,43 @@ tool_categories = {
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
 
-def create_lifecycle_stage(stage):
-    return dbc.Button(
-        stage['name'],
-        id={'type': 'stage-button', 'index': stage['name']},
-        className='m-1',
-        style={'backgroundColor': stage['color'], 'borderColor': stage['color']}
+# Function to create the circular layout
+def create_circular_layout():
+    fig = go.Figure()
+
+    for i, stage in enumerate(data):
+        angle = (i / len(data)) * 2 * math.pi
+        x = math.cos(angle)
+        y = math.sin(angle)
+
+        fig.add_trace(go.Scatter(
+            x=[x],
+            y=[y],
+            mode='markers+text',
+            marker=dict(size=40, color=stage['color']),
+            text=stage['name'],
+            textposition='middle center',
+            hoverinfo='text',
+            hovertext=stage['description'],
+            customdata=[stage['name']]
+        ))
+
+    fig.update_layout(
+        showlegend=False,
+        xaxis=dict(showgrid=False, zeroline=False, visible=False),
+        yaxis=dict(showgrid=False, zeroline=False, visible=False),
+        plot_bgcolor='rgba(0,0,0,0)',
+        margin=dict(l=0, r=0, t=0, b=0),
+        height=600
     )
+
+    return fig
 
 
 app.layout = dbc.Container([
     html.H1("The MaLDReTH Research Data Lifecycle", className='text-center my-4'),
 
-    dbc.Row([
-        dbc.Col([create_lifecycle_stage(stage) for stage in data], className='d-flex flex-wrap justify-content-center')
-    ]),
+    dcc.Graph(id='lifecycle-graph', figure=create_circular_layout()),
 
     html.Hr(),
 
@@ -74,6 +132,38 @@ app.layout = dbc.Container([
             html.H3("Tool Categories:", className='mb-3'),
             dbc.Accordion(id='tool-categories')
         ])
+    ]),
+
+    html.Hr(),
+
+    dbc.Row([
+        dbc.Col([
+            html.H3("Tool List", className='mb-3'),
+            dcc.Dropdown(
+                id='sort-dropdown',
+                options=[
+                    {'label': 'Sort by Name', 'value': 'name'},
+                    {'label': 'Sort by Category', 'value': 'category'}
+                ],
+                value='name',
+                className='mb-3'
+            ),
+            dash_table.DataTable(
+                id='tool-table',
+                columns=[
+                    {'name': 'Name', 'id': 'name'},
+                    {'name': 'Category', 'id': 'category'},
+                    {'name': 'Description', 'id': 'description'},
+                    {'name': 'Website', 'id': 'website'}
+                ],
+                style_cell={'textAlign': 'left'},
+                style_data={'whiteSpace': 'normal', 'height': 'auto'},
+                page_size=10,
+                filter_action='native',
+                sort_action='native',
+                sort_mode='multi'
+            )
+        ])
     ])
 ])
 
@@ -81,31 +171,47 @@ app.layout = dbc.Container([
 @app.callback(
     [Output('stage-name', 'children'),
      Output('stage-description', 'children'),
-     Output('tool-categories', 'children')],
-    [Input({'type': 'stage-button', 'index': dash.dependencies.ALL}, 'n_clicks')],
-    [State({'type': 'stage-button', 'index': dash.dependencies.ALL}, 'id')]
+     Output('tool-categories', 'children'),
+     Output('tool-table', 'data')],
+    [Input('lifecycle-graph', 'clickData'),
+     Input('sort-dropdown', 'value')]
 )
-def update_stage_info(n_clicks, ids):
-    ctx = dash.callback_context
-    if not ctx.triggered:
-        return "Select a stage", "", []
+def update_stage_info(clickData, sort_value):
+    if not clickData:
+        return "Select a stage", "", [], []
 
-    button_id = ctx.triggered[0]['prop_id'].split('.')[0]
-    stage_name = eval(button_id)['index']
+    stage_name = clickData['points'][0]['customdata'][0]
     stage = next(stage for stage in data if stage['name'] == stage_name)
     categories = tool_categories.get(stage_name, [])
 
     accordion_items = []
+    all_tools = []
     for i, category in enumerate(categories):
         accordion_items.append(
             dbc.AccordionItem(
-                [html.Ul([html.Li(example) for example in category['examples']])],
+                [html.Ul([html.Li([
+                    html.Strong(example['name']),
+                    html.Span(f": {example['description']}"),
+                    html.A(" (Website)", href=example['website'], target="_blank")
+                ]) for example in category['examples']])],
                 title=category['name'],
                 item_id=f"item-{i}"
             )
         )
+        for example in category['examples']:
+            all_tools.append({
+                'name': example['name'],
+                'category': category['name'],
+                'description': example['description'],
+                'website': example['website']
+            })
 
-    return stage['name'], stage['description'], accordion_items
+    if sort_value == 'name':
+        all_tools.sort(key=lambda x: x['name'])
+    else:
+        all_tools.sort(key=lambda x: x['category'])
+
+    return stage['name'], stage['description'], accordion_items, all_tools
 
 
 if __name__ == '__main__':
