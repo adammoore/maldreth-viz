@@ -34,7 +34,8 @@
     "Python.create_db.executor": "Run",
     "Python.main.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "main"
+    "git-widget-placeholder": "main",
+    "settings.editor.selected.configurable": "org.jetbrains.plugins.github.ui.GithubSettingsConfigurable"
   },
   "keyToStringList": {
     "GitStage.ChangesTree.GroupingKeys": [
@@ -116,7 +117,23 @@
       <option name="project" value="LOCAL" />
       <updated>1721046747847</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="fourth version&#10;tried web3d - no good for lifecycle - only worked for first 3 stages&#10;functional updates">
+      <option name="closed" value="true" />
+      <created>1721053019285</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1721053019285</updated>
+    </task>
+    <task id="LOCAL-00006" summary="fourth version&#10;tried web3d - no good for lifecycle - only worked for first 3 stages&#10;functional updates">
+      <option name="closed" value="true" />
+      <created>1721053047009</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1721053047009</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -124,6 +141,7 @@
     <MESSAGE value="working initial - version&#10;module calls improved" />
     <MESSAGE value="second version&#10;functional updates" />
     <MESSAGE value="third version&#10;functional updates" />
-    <option name="LAST_COMMIT_MESSAGE" value="third version&#10;functional updates" />
+    <MESSAGE value="fourth version&#10;tried web3d - no good for lifecycle - only worked for first 3 stages&#10;functional updates" />
+    <option name="LAST_COMMIT_MESSAGE" value="fourth version&#10;tried web3d - no good for lifecycle - only worked for first 3 stages&#10;functional updates" />
   </component>
 </project>
