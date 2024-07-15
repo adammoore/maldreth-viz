@@ -10,6 +10,13 @@
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
@@ -24,9 +31,17 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "Python.create_db.executor": "Run",
     "Python.main.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "git-widget-placeholder": "main"
+  },
+  "keyToStringList": {
+    "GitStage.ChangesTree.GroupingKeys": [
+      "directory",
+      "module",
+      "repository"
+    ]
   }
 }]]></component>
   <component name="RunManager">
@@ -69,6 +84,46 @@
       <option name="presentableId" value="Default" />
       <updated>1721044795388</updated>
     </task>
+    <task id="LOCAL-00001" summary="first version">
+      <option name="closed" value="true" />
+      <created>1721046653775</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1721046653775</updated>
+    </task>
+    <task id="LOCAL-00002" summary="working initial - version&#10;module calls improved">
+      <option name="closed" value="true" />
+      <created>1721046699441</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1721046699441</updated>
+    </task>
+    <task id="LOCAL-00003" summary="second version&#10;functional updates">
+      <option name="closed" value="true" />
+      <created>1721046728797</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1721046728797</updated>
+    </task>
+    <task id="LOCAL-00004" summary="third version&#10;functional updates">
+      <option name="closed" value="true" />
+      <created>1721046747847</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1721046747847</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="first version" />
+    <MESSAGE value="working initial - version&#10;module calls improved" />
+    <MESSAGE value="second version&#10;functional updates" />
+    <MESSAGE value="third version&#10;functional updates" />
+    <option name="LAST_COMMIT_MESSAGE" value="third version&#10;functional updates" />
   </component>
 </project>
