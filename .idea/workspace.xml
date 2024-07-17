@@ -21,6 +21,11 @@
     </option>
   </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="6d8928869534aae70222b04b0669d4d68daa32bd" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="ProjectColorInfo">{
@@ -36,6 +41,7 @@
   "keyToString": {
     "ASKED_ADD_EXTERNAL_FILES": "true",
     "Python.create_db.executor": "Run",
+    "Python.createdb_from_excel.executor": "Run",
     "Python.main.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "git-widget-placeholder": "main",
@@ -153,8 +159,51 @@
       <option name="project" value="LOCAL" />
       <updated>1721127482815</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="sixth version&#10;one page view - needs work on cycle visualisation&#10;interactive&#10;functional updates">
+      <option name="closed" value="true" />
+      <created>1721140032200</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1721140032200</updated>
+    </task>
+    <task id="LOCAL-00010" summary="sixth version&#10;one page view - needs work on cycle visualisation&#10;interactivee&#10;functional updates">
+      <option name="closed" value="true" />
+      <created>1721140084130</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1721140084130</updated>
+    </task>
+    <task id="LOCAL-00011" summary="seventh version&#10;one page view - information linked&#10;interactivee&#10;tool list still wrong&#10;functional updates">
+      <option name="closed" value="true" />
+      <created>1721205347396</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1721205347396</updated>
+    </task>
+    <task id="LOCAL-00012" summary="ninth version&#10;one page view - information linked&#10;interactivee&#10;tool list still wrong&#10;functional updates">
+      <option name="closed" value="true" />
+      <created>1721236865114</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1721236865114</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="first version" />
@@ -163,6 +212,10 @@
     <MESSAGE value="third version&#10;functional updates" />
     <MESSAGE value="fourth version&#10;tried web3d - no good for lifecycle - only worked for first 3 stages&#10;functional updates" />
     <MESSAGE value="fifth version&#10;one page view - needs work on cycle visualisation&#10;functional updates" />
-    <option name="LAST_COMMIT_MESSAGE" value="fifth version&#10;one page view - needs work on cycle visualisation&#10;functional updates" />
+    <MESSAGE value="sixth version&#10;one page view - needs work on cycle visualisation&#10;interactive&#10;functional updates" />
+    <MESSAGE value="sixth version&#10;one page view - needs work on cycle visualisation&#10;interactivee&#10;functional updates" />
+    <MESSAGE value="seventh version&#10;one page view - information linked&#10;interactivee&#10;tool list still wrong&#10;functional updates" />
+    <MESSAGE value="ninth version&#10;one page view - information linked&#10;interactivee&#10;tool list still wrong&#10;functional updates" />
+    <option name="LAST_COMMIT_MESSAGE" value="ninth version&#10;one page view - information linked&#10;interactivee&#10;tool list still wrong&#10;functional updates" />
   </component>
 </project>
