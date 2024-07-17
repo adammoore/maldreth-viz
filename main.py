@@ -1,325 +1,360 @@
-"""
-Research Data Lifecycle Management Application
-
-This application visualizes and manages the Research Data Lifecycle. It provides an interactive
-graph representation of the lifecycle stages, along with detailed information about substages,
-tools, and exemplars for each stage.
-
-The application uses a SQLite database to store and retrieve data about the research data lifecycle,
-including lifecycle stages, substages, tools, and connections between stages.
-
-Key components:
-1. Database setup and initialization
-2. Data population from CSV
-3. Dash layout definition
-4. Callback functions for interactivity
-
-The main layout consists of:
-- A Cytoscape graph representing the lifecycle stages
-- Tables for substages and tools
-- A section for displaying exemplars
-
-Callbacks enable dynamic updates of content based on user interactions with the graph and tables.
-"""
-
 import os
-from dash import Dash, html, dcc, Input, Output, dash_table, State, callback_context, no_update
-from dash.exceptions import PreventUpdate
+import logging
+from dash import Dash, html, dcc, Input, Output, State, callback_context, no_update, dash_table, dash
 import dash_cytoscape as cyto
-import sqlite3
-import pandas as pd
 import dash_bootstrap_components as dbc
+import pandas as pd
+import sqlite3
+from dash.exceptions import PreventUpdate
+
+# Set up logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+# Import the dagre layout for Cytoscape
+cyto.load_extra_layouts()
 
 # Database setup
 DB_FILE = 'research_data_lifecycle.db'
-CSV_FILE = 'research_data_lifecycle.csv'
 
-STAGE_DEFINITIONS = {
-    "CONCEPTUALISE": "To formulate the initial research idea or hypothesis, and define the scope of the research project and the data component/requirements of that project.",
-    "PLAN": "To establish a structured strategic framework for management of the research project, outlining aims, objectives, methodologies, and resources required for data collection, management and analysis. Data management plans (DMP) should be established for this phase of the lifecycle.",
-    "FUND": "To identify and acquire financial resources to support the research project, including data collection, management, analysis, sharing, publishing and preservation.",
-    "COLLECT": "To use predefined procedures, methodologies and instruments to acquire and store data that is reliable, fit for purpose and of sufficient quality to test the research hypothesis.",
-    "PROCESS": "To make new and existing data analysis-ready. This may involve standardised pre-processing, cleaning, reformatting, structuring, filtering, and performing quality control checks on data. It may also involve the creation and definition of metadata for use during analysis, such as acquiring provenance from instruments and tools used during data collection.",
-    "ANALYSE": "To derive insights, knowledge, and understanding from processed data. Data analysis involves iterative exploration and interpretation of experimental or computational results, often utilising mathematical models and formulae to investigate relationships between experimental variables. Distinct data analysis techniques and methodologies are applied according to the data type (quantitative vs qualitative).",
-    "STORE": "To record data using technological media appropriate for processing and analysis whilst maintaining data integrity and security.",
-    "PUBLISH": "To release research data in published form for use by others with appropriate metadata for citation (including a unique persistent identifier) based on FAIR principles.",
-    "PRESERVE": "To ensure the safety, integrity, and accessibility of data for as long as necessary so that data is as FAIR as possible. Data preservation is more than data storage and backup, since data can be stored and backed up without being preserved. Preservation should include curation activities such as data cleaning, validation, assigning preservation metadata, assigning representation information, and ensuring acceptable data structures and file formats. At a minimum, data and associated metadata should be published in a trustworthy digital repository and clearly cited in the accompanying journal article unless this is not possible (e.g. due to the privacy or safety concerns).",
-    "SHARE": "To make data available and accessible to humans and/or machines. Data may be shared with project collaborators or published to share it with the wider research community and society at large. Data sharing is not limited to open data or public data, and can be done during various stages of the research data lifecycle. At a minimum, data and associated metadata should be published in a trustworthy digital repository and clearly cited in the accompanying journal article.",
-    "ACCESS": "To control and manage data access by designated users and reusers. This may be in the form of publicly available published information. Necessary access control and authentication methods are applied.",
-    "TRANSFORM": "To create new data from the original, for example: (i) by migration into a different format; (ii) by creating a subset, by selection or query, to create newly derived results, perhaps for publication; or, iii) combining or appending with other data"
+
+def create_connection(db_file):
+    """Create a database connection to the SQLite database specified by db_file."""
+    try:
+        conn = sqlite3.connect(db_file)
+        return conn
+    except sqlite3.Error as e:
+        logging.error(f"Error connecting to database: {e}")
+    return None
+
+
+# Define Dash app with Bootstrap theme
+app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.FONT_AWESOME])
+
+# Color palette
+COLORS = {
+    'primary': '#3498db',
+    'secondary': '#2ecc71',
+    'background': '#f8f9fa',
+    'text': '#2c3e50'
 }
 
-
-def create_connection():
-    """Create a database connection to the SQLite database."""
-    conn = None
-    try:
-        conn = sqlite3.connect(DB_FILE, check_same_thread=False)
-    except sqlite3.Error as e:
-        print(f"Error connecting to database: {e}")
-    return conn
-
-
-def initialize_database(conn):
-    """Create tables in the database if they don't exist."""
-    try:
-        cursor = conn.cursor()
-        cursor.executescript('''
-            CREATE TABLE IF NOT EXISTS LifeCycle (
-                stage TEXT PRIMARY KEY,
-                stagedesc TEXT
-            );
-            CREATE TABLE IF NOT EXISTS SubStage (
-                substagename TEXT,
-                substagedesc TEXT,
-                exemplar TEXT,
-                stage TEXT,
-                FOREIGN KEY (stage) REFERENCES LifeCycle(stage)
-            );
-            CREATE TABLE IF NOT EXISTS Tools (
-                ToolName TEXT,
-                ToolDesc TEXT,
-                ToolLink TEXT,
-                ToolProvider TEXT,
-                stage TEXT,
-                FOREIGN KEY (stage) REFERENCES LifeCycle(stage)
-            );
-            CREATE TABLE IF NOT EXISTS CycleConnects (
-                source TEXT,
-                target TEXT,
-                FOREIGN KEY (source) REFERENCES LifeCycle(stage),
-                FOREIGN KEY (target) REFERENCES LifeCycle(stage)
-            );
-        ''')
-        conn.commit()
-    except sqlite3.Error as e:
-        print(f"Error initializing database: {e}")
-
-
-def populate_data_from_csv(conn, csv_file):
-    """Populate the database with data from the CSV file."""
-    df = pd.read_csv(csv_file)
-    df.columns = [col.strip().replace('\n', ' ').replace('  ', ' ') for col in df.columns]
-
-    lifecycle_data = df['RESEARCH DATA LIFECYCLE STAGE'].unique()
-    cursor = conn.cursor()
-
-    # Populate LifeCycle table
-    for stage in lifecycle_data:
-        cursor.execute("INSERT OR REPLACE INTO LifeCycle (stage, stagedesc) VALUES (?, ?)",
-                       (stage, STAGE_DEFINITIONS.get(stage, '')))
-
-    # Populate SubStage table
-    substage_data = df[['TOOL CATEGORY TYPE', 'DESCRIPTION (1 SENTENCE)', 'EXAMPLES', 'RESEARCH DATA LIFECYCLE STAGE']]
-    for _, row in substage_data.iterrows():
-        cursor.execute("""
-        INSERT OR REPLACE INTO SubStage (substagename, substagedesc, exemplar, stage) VALUES (?, ?, ?, ?)
-        """, (row['TOOL CATEGORY TYPE'], row['DESCRIPTION (1 SENTENCE)'], row['EXAMPLES'],
-              row['RESEARCH DATA LIFECYCLE STAGE']))
-
-    # Populate Tools table
-    tools_data = df[['EXAMPLES', 'DESCRIPTION (1 SENTENCE)', 'RESEARCH DATA LIFECYCLE STAGE']]
-    for _, row in tools_data.iterrows():
-        tools = row['EXAMPLES'].split(',')
-        for tool in tools:
-            cursor.execute("""
-            INSERT OR REPLACE INTO Tools (ToolName, ToolDesc, ToolLink, ToolProvider, stage) VALUES (?, ?, '', '', ?)
-            """, (tool.strip(), row['DESCRIPTION (1 SENTENCE)'], row['RESEARCH DATA LIFECYCLE STAGE']))
-
-    # Populate CycleConnects table (example connections, adjust as needed)
-    connections = [
-        ('CONCEPTUALISE', 'PLAN'),
-        ('PLAN', 'FUND'),
-        ('FUND', 'COLLECT'),
-        ('COLLECT', 'PROCESS'),
-        ('PROCESS', 'ANALYSE'),
-        ('ANALYSE', 'STORE'),
-        ('STORE', 'PUBLISH'),
-        ('PUBLISH', 'PRESERVE'),
-        ('PRESERVE', 'SHARE'),
-        ('SHARE', 'ACCESS'),
-        ('ACCESS', 'TRANSFORM'),
-        ('TRANSFORM', 'CONCEPTUALISE')
-    ]
-    for source, target in connections:
-        cursor.execute("INSERT OR REPLACE INTO CycleConnects (source, target) VALUES (?, ?)", (source, target))
-
-    conn.commit()
-
-
-def fetch_data(query):
-    """Fetch data from the database based on the provided query."""
-    conn = create_connection()
-    if conn:
-        try:
-            df = pd.read_sql_query(query, conn)
-            return df
-        except sqlite3.Error as e:
-            print(f"Error fetching data: {e}")
-        finally:
-            conn.close()
-    return pd.DataFrame()
-
-
-app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
-
+# Define layout with improved UI/UX and subtle coloring
 app.layout = dbc.Container([
-    html.H1("Research Data Lifecycle Management", className="text-center mb-4"),
+    html.H1("MaLDReTH Research Data Lifecycle", className="text-center my-4", style={'color': COLORS['primary']}),
     dbc.Row([
         dbc.Col([
-            html.H3("Lifecycle Graph"),
-            cyto.Cytoscape(
-                id='lifecycle-graph',
-                style={'width': '100%', 'height': '600px'},
-                layout={'name': 'circle'},
-                elements=[],
-                stylesheet=[
-                    {
-                        'selector': 'node',
-                        'style': {
-                            'content': 'data(label)',
-                            'text-valign': 'center',
-                            'text-halign': 'center',
-                            'background-color': '#BFD7B5',
-                            'shape': 'round-rectangle',
-                            'width': 'label',
-                            'height': 'label',
-                            'padding': '10px'
-                        }
-                    },
-                    {
-                        'selector': 'edge',
-                        'style': {
-                            'curve-style': 'bezier',
-                            'target-arrow-shape': 'triangle',
-                            'line-color': '#A3C4BC',
-                            'target-arrow-color': '#A3C4BC'
-                        }
-                    }
-                ]
-            )
-        ], width=12, lg=12),
-    ], className="mb-4"),
-    dbc.Row([
-        dbc.Col([
-            html.H3("Substages", id="substages-title"),
-            dash_table.DataTable(
-                id='substage-table',
-                columns=[
-                    {"name": "Substage Name", "id": "substagename"},
-                    {"name": "Description", "id": "substagedesc"},
-                    {"name": "Exemplar", "id": "exemplar"}
-                ],
-                data=[],
-                style_table={'overflowX': 'auto'},
-                style_cell={
-                    'textAlign': 'left',
-                    'padding': '8px',
-                    'border': '1px solid #ddd',
-                    'whiteSpace': 'normal',
-                    'height': 'auto',
-                },
-                style_header={'backgroundColor': '#f2f2f2', 'fontWeight': 'bold'},
-                style_data_conditional=[
-                    {'if': {'row_index': 'odd'}, 'backgroundColor': '#f9f9f9'}
-                ],
-            ),
-        ], width=12, lg=6, className="mb-4"),
-        dbc.Col([
-            html.H3("Tools", id="tools-title"),
-            dash_table.DataTable(
-                id='tools-table',
-                columns=[
-                    {"name": "Tool Name", "id": "ToolName"},
-                    {"name": "Description", "id": "ToolDesc"}
-                ],
-                data=[],
-                style_table={'overflowX': 'auto'},
-                style_cell={
-                    'textAlign': 'left',
-                    'padding': '8px',
-                    'border': '1px solid #ddd',
-                    'whiteSpace': 'normal',
-                    'height': 'auto',
-                },
-                style_header={'backgroundColor': '#f2f2f2', 'fontWeight': 'bold'},
-                style_data_conditional=[
-                    {'if': {'row_index': 'odd'}, 'backgroundColor': '#f9f9f9'}
-                ],
-            ),
-        ], width=12, lg=6, className="mb-4"),
+            html.H3("Lifecycle Graph", className="mb-3", style={'color': COLORS['secondary']}),
+            dbc.Card([
+                dbc.CardBody([
+                    cyto.Cytoscape(
+                        id='lifecycle-graph',
+                        style={'width': '100%', 'height': '600px'},
+                        layout={
+                            'name': 'circle',
+                            'padding': 50
+                        },
+                        elements=[],
+                        stylesheet=[
+                            {
+                                'selector': 'node',
+                                'style': {
+                                    'content': 'data(label)',
+                                    'text-valign': 'center',
+                                    'text-halign': 'center',
+                                    'background-color': COLORS['primary'],
+                                    'color': '#ffffff',
+                                    'shape': 'rectangle',
+                                    'width': '120px',
+                                    'height': '60px',
+                                    'font-size': '14px',
+                                    'text-wrap': 'wrap',
+                                    'text-max-width': '100px'
+                                }
+                            },
+                            {
+                                'selector': 'edge',
+                                'style': {
+                                    'curve-style': 'bezier',
+                                    'target-arrow-shape': 'triangle',
+                                    'line-color': COLORS['secondary'],
+                                    'target-arrow-color': COLORS['secondary']
+                                }
+                            },
+                            {
+                                'selector': 'edge[type = "alternative"]',
+                                'style': {
+                                    'line-style': 'dashed',
+                                    'line-dash-pattern': [6, 3],
+                                    'line-color': '#999',
+                                    'target-arrow-color': '#999'
+                                }
+                            },
+                            {
+                                'selector': '.highlighted',
+                                'style': {
+                                    'background-color': '#FFD700',
+                                    'line-color': '#FFD700',
+                                    'target-arrow-color': '#FFD700',
+                                    'transition-property': 'background-color, line-color, target-arrow-color',
+                                    'transition-duration': '0.5s'
+                                }
+                            }
+                        ]
+
+                    )
+                ])
+            ], className="mb-4", style={'backgroundColor': COLORS['background']})
+        ], width=12),
     ]),
     dbc.Row([
         dbc.Col([
-            html.H3("Exemplars", id="exemplars-title"),
-            html.Div(id="exemplars-content")
+            html.H3("Stage Details", className="mt-4 mb-3", style={'color': COLORS['secondary']}),
+            dbc.Card([
+                dbc.CardBody([
+                    cyto.Cytoscape(
+                        id='stage-details-graph',
+                        style={'width': '100%', 'height': '400px'},
+                        layout={'name': 'breadthfirst', 'roots': '#Access'},
+                        elements=[],
+                        stylesheet=[
+                            {
+                                'selector': 'node',
+                                'style': {
+                                    'content': 'data(label)',
+                                    'text-valign': 'center',
+                                    'text-halign': 'center',
+                                    'background-color': COLORS['secondary'],
+                                    'color': '#ffffff',
+                                    'shape': 'round-rectangle',
+                                    'width': '120px',
+                                    'height': '40px',
+                                    'font-size': '12px',
+                                    'text-wrap': 'wrap',
+                                    'text-max-width': '100px'
+                                }
+                            },
+                            {
+                                'selector': 'edge',
+                                'style': {
+                                    'curve-style': 'bezier',
+                                    'target-arrow-shape': 'triangle',
+                                    'line-color': COLORS['primary'],
+                                    'target-arrow-color': COLORS['primary']
+                                }
+                            }
+                        ]
+                    )
+                ])
+            ], style={'backgroundColor': COLORS['background']})
         ], width=12)
+    ]),
+    dbc.Row([
+        dbc.Col([
+            html.H3("Substages and Tools", className="mb-3", style={'color': COLORS['secondary']}),
+            dbc.Tabs([
+                dbc.Tab([
+                    dash_table.DataTable(
+                        id='substage-table',
+                        columns=[
+                            {"name": "Substage Name", "id": "substagename"},
+                            {"name": "Description", "id": "substagedesc"},
+                            {"name": "Exemplars", "id": "exemplar"}
+                        ],
+                        data=[],
+                        style_table={'overflowX': 'auto'},
+                        style_cell={
+                            'textAlign': 'left',
+                            'padding': '8px',
+                            'whiteSpace': 'normal',
+                            'height': 'auto',
+                            'color': COLORS['text']
+                        },
+                        style_header={
+                            'backgroundColor': COLORS['primary'],
+                            'color': '#ffffff',
+                            'fontWeight': 'bold'
+                        },
+                        style_data_conditional=[
+                            {'if': {'row_index': 'odd'}, 'backgroundColor': COLORS['background']}
+                        ],
+                    )
+                ], label="Substages"),
+                dbc.Tab([
+                    dash_table.DataTable(
+                        id='tools-table',
+                        columns=[
+                            {"name": "Tool Name", "id": "ToolName"},
+                            {"name": "Description", "id": "ToolDesc"},
+                            {"name": "Link", "id": "ToolLink"},
+                            {"name": "Provider", "id": "ToolProvider"}
+                        ],
+                        data=[],
+                        style_table={'overflowX': 'auto'},
+                        style_cell={
+                            'textAlign': 'left',
+                            'padding': '8px',
+                            'whiteSpace': 'normal',
+                            'height': 'auto',
+                            'color': COLORS['text']
+                        },
+                        style_header={
+                            'backgroundColor': COLORS['primary'],
+                            'color': '#ffffff',
+                            'fontWeight': 'bold'
+                        },
+                        style_data_conditional=[
+                            {'if': {'row_index': 'odd'}, 'backgroundColor': COLORS['background']}
+                        ],
+                    ),
+                    dbc.Button("Add Tool", color="primary", id="add-tool-btn", className="mt-3 me-2"),
+                    dbc.Button("Update Tool", color="secondary", id="update-tool-btn", className="mt-3 me-2"),
+                    dbc.Button("Delete Tool", color="danger", id="delete-tool-btn", className="mt-3")
+                ], label="Tools")
+            ])
+        ], width=12),
     ])
-], fluid=True)
-
+], fluid=True, style={'backgroundColor': COLORS['background'], 'minHeight': '100vh'})
 
 @app.callback(
     Output('lifecycle-graph', 'elements'),
-    Input('lifecycle-graph', 'id')
+    Input('lifecycle-graph', 'tapNodeData')
 )
-def update_graph_elements(_):
-    """Update the lifecycle graph elements."""
-    nodes_query = "SELECT stage, stagedesc FROM LifeCycle"
-    nodes = fetch_data(nodes_query).to_dict('records')
-    edges_query = "SELECT source, target FROM CycleConnects"
-    edges = fetch_data(edges_query).to_dict('records')
+def update_graph_elements(tapped_node):
+    conn = create_connection(DB_FILE)
+    if not conn:
+        return []
 
-    elements = [{'data': {'id': node['stage'], 'label': node['stage'], 'title': node['stagedesc']}} for node in nodes]
-    elements.extend([{'data': {'source': edge['source'], 'target': edge['target']}} for edge in edges])
+    try:
+        nodes_query = "SELECT stage, stagedesc FROM LifeCycle"
+        nodes = pd.read_sql_query(nodes_query, conn)
+        edges_query = "SELECT start, end, type FROM CycleConnects"
+        edges = pd.read_sql_query(edges_query, conn)
 
-    return elements
+        # Create a dictionary of nodes
+        node_dict = {str(i+1): node['stage'] for i, node in enumerate(nodes.to_dict('records'))}
+
+        # Create node elements
+        elements = [{'data': {'id': str(i+1), 'label': node['stage'], 'title': node['stagedesc']}} for i, node in enumerate(nodes.to_dict('records'))]
+
+        # Create edge elements, ensuring both source and target nodes exist
+        for edge in edges.to_dict('records'):
+            source = str(edge['start'])
+            target = str(edge['end'])
+            if source in node_dict and target in node_dict:
+                elements.append({'data': {'source': source, 'target': target, 'type': edge['type']}})
+            else:
+                logging.warning(f"Skipping edge {source} -> {target} due to missing node(s)")
+
+        if tapped_node:
+            for element in elements:
+                if element['data']['id'] == tapped_node['id']:
+                    element['classes'] = 'highlighted'
+
+        return elements
+    except pd.errors.DatabaseError as e:
+        logging.error(f"Error querying database: {e}")
+        return []
+    finally:
+        conn.close()
 
 
 @app.callback(
-    Output('substages-title', 'children'),
     Output('substage-table', 'data'),
-    Output('tools-title', 'children'),
     Output('tools-table', 'data'),
-    Input('lifecycle-graph', 'tapNode')
+    Output('stage-details-graph', 'elements'),
+    Input('lifecycle-graph', 'tapNodeData'),
+    Input('add-tool-btn', 'n_clicks'),
+    Input('update-tool-btn', 'n_clicks'),
+    Input('delete-tool-btn', 'n_clicks'),
+    State('tools-table', 'data'),
+    State('tools-table', 'selected_rows')
 )
-def update_content(tapped_node):
-    """Update content based on the selected node in the lifecycle graph."""
-    if not tapped_node:
+def update_content(tapped_node, add_clicks, update_clicks, delete_clicks, tools_data, selected_rows):
+    ctx = callback_context
+    if not ctx.triggered:
         raise PreventUpdate
 
-    selected_stage = tapped_node['data']['id']
+    button_id = ctx.triggered[0]['prop_id'].split('.')[0]
 
-    substages_query = f"SELECT substagename, substagedesc, exemplar FROM SubStage WHERE stage = '{selected_stage}'"
-    substages_data = fetch_data(substages_query).to_dict('records')
+    conn = create_connection(DB_FILE)
+    if not conn:
+        return [], [], []
 
-    tools_query = f"SELECT ToolName, ToolDesc FROM Tools WHERE stage = '{selected_stage}'"
-    tools_data = fetch_data(tools_query).to_dict('records')
+    try:
+        if tapped_node:
+            selected_stage = pd.read_sql_query("SELECT stage FROM LifeCycle LIMIT 1 OFFSET ?", conn,
+                                               params=(int(tapped_node['id']) - 1,)).iloc[0]['stage']
+        else:
+            selected_stage = None
 
-    return f"Substages for {selected_stage}", substages_data, f"Tools for {selected_stage}", tools_data
+        # Fetch substages data
+        substages_query = """
+        SELECT substagename, substagedesc, exemplar
+        FROM SubStage
+        WHERE stage = ? OR ? IS NULL
+        """
+        substages = pd.read_sql_query(substages_query, conn, params=(selected_stage, selected_stage))
+        substage_data = substages.to_dict('records')
 
+        # Fetch tools data
+        tools_query = """
+        SELECT ToolName, ToolDesc, ToolLink, ToolProvider
+        FROM Tools
+        WHERE stage = ? OR ? IS NULL
+        """
+        tools = pd.read_sql_query(tools_query, conn, params=(selected_stage, selected_stage))
+        tools_data = tools.to_dict('records')
 
-@app.callback(
-    Output('exemplars-title', 'children'),
-    Output('exemplars-content', 'children'),
-    Input('substage-table', 'active_cell'),
-    State('substage-table', 'data')
-)
-def update_exemplars(active_cell, substage_data):
-    """Update exemplars based on the selected substage."""
-    if not active_cell:
-        raise PreventUpdate
+        # Create stage details graph elements
+        stage_details_elements = [
+            {'data': {'id': row['substagename'], 'label': row['substagename']}} for row in substage_data
+        ]
+        stage_details_elements.extend([
+            {'data': {'id': row['ToolName'], 'label': row['ToolName']}} for row in tools_data
+        ])
+        stage_details_elements.extend([
+            {'data': {'source': substage['substagename'], 'target': tool['ToolName']}}
+            for substage in substage_data
+            for tool in tools_data
+        ])
 
-    selected_row = substage_data[active_cell['row']]
-    exemplars = selected_row['exemplar'].split(',')
+        # Handle button clicks
+        if button_id == 'add-tool-btn':
+            new_tool = {
+                'ToolName': 'New Tool',
+                'ToolDesc': 'Description',
+                'ToolLink': 'http://example.com',
+                'ToolProvider': 'Provider',
+                'stage': selected_stage
+            }
+            conn.execute("""
+                INSERT INTO Tools (ToolName, ToolDesc, ToolLink, ToolProvider, stage)
+                VALUES (?, ?, ?, ?, ?)
+            """, tuple(new_tool.values()))
+            conn.commit()
+            tools_data.append(new_tool)
+        elif button_id == 'update-tool-btn' and selected_rows:
+            selected_tool = tools_data[selected_rows[0]]
+            conn.execute("""
+                UPDATE Tools
+                SET ToolDesc = ?, ToolLink = ?, ToolProvider = ?
+                WHERE ToolName = ?
+            """, (selected_tool['ToolDesc'], selected_tool['ToolLink'], selected_tool['ToolProvider'],
+                  selected_tool['ToolName']))
+            conn.commit()
+        elif button_id == 'delete-tool-btn' and selected_rows:
+            selected_tool = tools_data[selected_rows[0]]
+            conn.execute("DELETE FROM Tools WHERE ToolName = ?", (selected_tool['ToolName'],))
+            conn.commit()
+            tools_data.pop(selected_rows[0])
 
-    return f"Exemplars for {selected_row['substagename']}", [html.P(exemplar.strip()) for exemplar in exemplars]
+        return substage_data, tools_data, stage_details_elements
+    except sqlite3.Error as e:
+        logging.error(f"Database error: {e}")
+        return [], [], []
+    finally:
+        conn.close()
 
 
 if __name__ == '__main__':
-    conn = create_connection()
-    if conn:
-        initialize_database(conn)
-        if not os.path.exists(DB_FILE):
-            populate_data_from_csv(conn, CSV_FILE)
-        conn.close()
     app.run_server(debug=True)
