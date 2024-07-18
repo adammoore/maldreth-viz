@@ -224,7 +224,15 @@
       <option name="project" value="LOCAL" />
       <updated>1721320571077</updated>
     </task>
-    <option name="localTasksCounter" value="17" />
+    <task id="LOCAL-00017" summary="twelth version&#10;much better visualisation and views &#10;needs work on visual representation and text views">
+      <option name="closed" value="true" />
+      <created>1721333982288</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1721333982288</updated>
+    </task>
+    <option name="localTasksCounter" value="18" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -251,6 +259,7 @@
     <MESSAGE value="ninth version&#10;one page view - information linked&#10;interactivee&#10;tool list still wrong&#10;functional updates" />
     <MESSAGE value="ninth version&#10;added requirements .txt" />
     <MESSAGE value="eleventh version&#10;much better visualisation and views &#10;needs work on visual representation and text views" />
-    <option name="LAST_COMMIT_MESSAGE" value="eleventh version&#10;much better visualisation and views &#10;needs work on visual representation and text views" />
+    <MESSAGE value="twelth version&#10;much better visualisation and views &#10;needs work on visual representation and text views" />
+    <option name="LAST_COMMIT_MESSAGE" value="twelth version&#10;much better visualisation and views &#10;needs work on visual representation and text views" />
   </component>
 </project>
