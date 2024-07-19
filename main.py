@@ -1,25 +1,3 @@
-"""
-Research Data Lifecycle Tools Visualization
-
-This Flask application uses Dash and Dash Bootstrap Components to visualize
-the research data lifecycle stages and associated tools. Users can explore
-the lifecycle stages, view details, and manage tools. Clicking on a lifecycle
-stage shifts the focus to that stage in all views.
-
-Modules:
-    - os
-    - logging
-    - dash
-    - dash_cytoscape
-    - dash_bootstrap_components
-    - pandas
-    - sqlite3
-    - dash.exceptions
-
-Usage:
-    Run this script to start the Flask application server.
-"""
-
 import os
 import logging
 from dash import Dash, html, dcc, Input, Output, State, dash_table
@@ -65,27 +43,17 @@ def get_dataframe_from_db(query, params=()):
         return pd.DataFrame()
 
 
-# Fetch lifecycle stages
+# Fetch data
 lifecycle_stages_df = get_dataframe_from_db("SELECT stage, stagedesc FROM LifeCycle")
 lifecycle_stages = lifecycle_stages_df.set_index('stage')['stagedesc'].to_dict()
-
-# Fetch cycle connections
 cycle_connects_df = get_dataframe_from_db("SELECT id, start, end, type FROM CycleConnects")
-
-# Fetch substages
 substages_df = get_dataframe_from_db("SELECT substagename AS substage, stage FROM SubStage")
-
-# Fetch exemplars from the SubStage table
-exemplars_df = get_dataframe_from_db(
-    "SELECT substagename AS substage, exemplar AS exemplarname, substagedesc AS exemplardesc FROM SubStage")
-
-# Fetch tools
+exemplars_df = get_dataframe_from_db("SELECT substagename AS substage, exemplar AS exemplarname, substagedesc AS exemplardesc FROM SubStage")
 tools_df = get_dataframe_from_db("SELECT ToolName, ToolDesc, ToolLink, ToolProvider, stage FROM Tools")
 
 
 def create_full_lifecycle_elements():
     """Create nodes and edges for the full lifecycle graph."""
-    # Create nodes for lifecycle stages
     nodes = [
         {
             'data': {'id': stage, 'label': stage},
@@ -97,12 +65,11 @@ def create_full_lifecycle_elements():
                 'border-color': '#2E86C1',
                 'border-width': 2
             },
-            'tooltip': {'content': desc}  # Set tooltip for description
+            'tooltip': {'content': desc}
         }
         for stage, desc in lifecycle_stages.items()
     ]
 
-    # Create edges for cycle connections
     edges = []
     for idx, row in cycle_connects_df.iterrows():
         if row['start'] not in lifecycle_stages or row['end'] not in lifecycle_stages:
@@ -164,8 +131,7 @@ def get_tools_for_stage(stage):
 # Updated app layout
 app.layout = dbc.Container([
     html.H1("Research Data Lifecycle Tools", className="my-4"),
-    html.P(
-        "Explore the research data lifecycle stages and associated tools. Click on a stage to view details and manage tools."),
+    html.P("Explore the research data lifecycle stages and associated tools. Click on a stage to view details and manage tools."),
     dbc.Row([
         dbc.Col([
             html.H3("Full Lifecycle"),
@@ -397,11 +363,6 @@ def update_tools_table(selected_stage, sort_by, n_clicks, name, desc, link, prov
             "stage": stage
         }
         data.append(new_tool)
-        # Here you would also want to insert the new tool into the database
-        # conn = get_db_connection()
-        # conn.execute("INSERT INTO Tools (ToolName, ToolDesc, ToolLink, ToolProvider, stage) VALUES (?, ?, ?, ?, ?)",
-        #              (name, desc, link, provider, stage))
-        # conn.commit()
 
     if selected_stage:
         tools_df_stage = get_tools_for_stage(selected_stage)
