@@ -240,7 +240,23 @@
       <option name="project" value="LOCAL" />
       <updated>1721335666228</updated>
     </task>
-    <option name="localTasksCounter" value="19" />
+    <task id="LOCAL-00019" summary="fourteenth version&#10;much better visualisation and views &#10;needs work on visual representation and text views&#10;&#10;Node Labels and Connecting Edges: Confirmed that the label property is set correctly in the stylesheet for both the full lifecycle and focused stage graphs. Added explicit checks to ensure edges are created only if both source and target nodes exist.&#10;Default Values: The modal for adding or editing tools is now set to correctly populate with values from the selected tool.&#10;Edit Button: Each row in the tools table has an Edit button that opens the modal pre-filled with the selected tool's details.&#10;Hyperlinks for URLs: Made sure the ToolLink is rendered as a hyperlink.&#10;Responsive Design: Used Bootstrap's layout features to ensure responsiveness.">
+      <option name="closed" value="true" />
+      <created>1721429990468</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1721429990468</updated>
+    </task>
+    <task id="LOCAL-00020" summary="fourteenth version&#10;much better visualisation and views &#10;needs work on visual representation and text views&#10;&#10;Node Labels and Connecting Edges: Confirmed that the label property is set correctly in the stylesheet for both the full lifecycle and focused stage graphs. Added explicit checks to ensure edges are created only if both source and target nodes exist.&#10;Default Values: The modal for adding or editing tools is now set to correctly populate with values from the selected tool.&#10;Edit Button: Each row in the tools table has an Edit button that opens the modal pre-filled with the selected tool's details.&#10;Hyperlinks for URLs: Made sure the ToolLink is rendered as a hyperlink.&#10;Responsive Design: Used Bootstrap's layout features to ensure responsiveness.">
+      <option name="closed" value="true" />
+      <created>1721430084854</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1721430084854</updated>
+    </task>
+    <option name="localTasksCounter" value="21" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -269,6 +285,7 @@
     <MESSAGE value="eleventh version&#10;much better visualisation and views &#10;needs work on visual representation and text views" />
     <MESSAGE value="twelth version&#10;much better visualisation and views &#10;needs work on visual representation and text views" />
     <MESSAGE value="thirteenth version&#10;much better visualisation and views &#10;needs work on visual representation and text views" />
-    <option name="LAST_COMMIT_MESSAGE" value="thirteenth version&#10;much better visualisation and views &#10;needs work on visual representation and text views" />
+    <MESSAGE value="fourteenth version&#10;much better visualisation and views &#10;needs work on visual representation and text views&#10;&#10;Node Labels and Connecting Edges: Confirmed that the label property is set correctly in the stylesheet for both the full lifecycle and focused stage graphs. Added explicit checks to ensure edges are created only if both source and target nodes exist.&#10;Default Values: The modal for adding or editing tools is now set to correctly populate with values from the selected tool.&#10;Edit Button: Each row in the tools table has an Edit button that opens the modal pre-filled with the selected tool's details.&#10;Hyperlinks for URLs: Made sure the ToolLink is rendered as a hyperlink.&#10;Responsive Design: Used Bootstrap's layout features to ensure responsiveness." />
+    <option name="LAST_COMMIT_MESSAGE" value="fourteenth version&#10;much better visualisation and views &#10;needs work on visual representation and text views&#10;&#10;Node Labels and Connecting Edges: Confirmed that the label property is set correctly in the stylesheet for both the full lifecycle and focused stage graphs. Added explicit checks to ensure edges are created only if both source and target nodes exist.&#10;Default Values: The modal for adding or editing tools is now set to correctly populate with values from the selected tool.&#10;Edit Button: Each row in the tools table has an Edit button that opens the modal pre-filled with the selected tool's details.&#10;Hyperlinks for URLs: Made sure the ToolLink is rendered as a hyperlink.&#10;Responsive Design: Used Bootstrap's layout features to ensure responsiveness." />
   </component>
 </project>
